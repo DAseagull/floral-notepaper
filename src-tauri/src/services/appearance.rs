@@ -15,7 +15,9 @@ pub struct SurfaceAppearance {
 }
 
 fn read_preferences() -> Result<BTreeMap<String, u8>, AppError> {
-    let path = default_store()?.config_dir().join("surface-appearance.json");
+    let path = default_store()?
+        .config_dir()
+        .join("surface-appearance.json");
     if !path.exists() {
         return Ok(BTreeMap::new());
     }
@@ -61,7 +63,16 @@ pub fn surface_appearance_set(
     } else {
         preferences.remove(&note_id);
     }
-    write_json_atomic(&store.config_dir().join("surface-appearance.json"), &preferences)?;
-    let _ = app.emit("surface-appearance-changed", SurfaceAppearance { note_id, transparency });
+    write_json_atomic(
+        &store.config_dir().join("surface-appearance.json"),
+        &preferences,
+    )?;
+    let _ = app.emit(
+        "surface-appearance-changed",
+        SurfaceAppearance {
+            note_id,
+            transparency,
+        },
+    );
     Ok(())
 }

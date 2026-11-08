@@ -614,10 +614,14 @@ fn force_terminate_self() -> ! {
 }
 
 fn personal_update_guard() -> Result<(), AppError> {
-    if cfg!(test) { return Ok(()); }
-    Err(AppError { code: "personalBuild".into(),
+    if cfg!(test) {
+        return Ok(());
+    }
+    Err(AppError {
+        code: "personalBuild".into(),
         message: "个人定制版通过 DAseagull/floral-notepaper 仓库下载更新。".into(),
-        details: Default::default() })
+        details: Default::default(),
+    })
 }
 
 #[cfg(test)]

@@ -28,15 +28,20 @@ jobs:
       - run: npm ci
       - run: npm test
       - run: npm run lint
-      - name: Format Rust and preserve formatting patch
+      - run: npx oxfmt --check
+      - name: Check Rust formatting and preserve diagnostics
         shell: pwsh
         run: |
           cargo fmt --manifest-path src-tauri/Cargo.toml --all
           git diff --output=rustfmt.patch -- src-tauri
+          git diff --exit-code -- src-tauri
       - name: Rust tests
         run: cargo test --manifest-path src-tauri/Cargo.toml -p floral-notepaper --lib
       - name: Rust lint
         run: cargo clippy --manifest-path src-tauri/Cargo.toml --all-targets -- -D warnings
+      - name: Prepare verified NSIS toolchain
+        shell: pwsh
+        run: scripts/prepare-nsis-toolchain.ps1
       - name: Build installer and portable application
         run: npm run tauri build -- --bundles nsis
       - name: Collect artifacts
@@ -46,7 +51,7 @@ jobs:
           Copy-Item src-tauri/target/release/floral-notepaper.exe personal-artifacts/floral-seagull-portable.exe
           Get-ChildItem src-tauri/target/release/bundle/nsis -Filter *.exe -Recurse | Copy-Item -Destination personal-artifacts
           Copy-Item Docs/PERSONAL_BUILD.md personal-artifacts/README.md
-          Get-ChildItem personal-artifacts -Filter *.exe | Get-FileHash -Algorithm SHA256 | Format-Table -AutoSize | Out-File personal-artifacts/SHA256.txt
+          Get-ChildItem personal-artifacts -Filter *.exe | Get-FileHash -Algorithm SHA256 | ForEach-Object { '{0} *{1}' -f $_.Hash.ToLowerInvariant(), (Split-Path -Leaf $_.Path) } | Set-Content personal-artifacts/SHA256.txt
       - uses: actions/upload-artifact@v4
         if: always()
         with:

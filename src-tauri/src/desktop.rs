@@ -756,7 +756,13 @@ fn build_tray_menu(app: &AppHandle, config: &AppConfig) -> Result<Menu<Wry>, Box
         None::<&str>,
     )?;
     let pin_image = MenuItem::with_id(app, "pin-image", "贴出剪贴板图片", true, None::<&str>)?;
-    let restore_background = MenuItem::with_id(app, "restore-background", "恢复主窗口背景", true, None::<&str>)?;
+    let restore_background = MenuItem::with_id(
+        app,
+        "restore-background",
+        "恢复主窗口背景",
+        true,
+        None::<&str>,
+    )?;
     let separator = PredefinedMenuItem::separator(app)?;
     let quit = MenuItem::with_id(app, specs[4].id, specs[4].label, true, None::<&str>)?;
 
@@ -1085,7 +1091,10 @@ pub fn apply_runtime_config(
 ) -> Result<(), Box<dyn Error>> {
     let changes = runtime_config_changes(previous, next);
 
-    if changes.global_shortcut_changed || changes.toggle_visibility_shortcut_changed || changes.pin_image_shortcut_changed {
+    if changes.global_shortcut_changed
+        || changes.toggle_visibility_shortcut_changed
+        || changes.pin_image_shortcut_changed
+    {
         apply_global_shortcut_config(app, next)?;
     }
 
@@ -1174,7 +1183,9 @@ pub fn setup_desktop(app: &mut App) -> Result<(), Box<dyn Error>> {
 
 pub fn handle_window_event(window: &Window, event: &WindowEvent) {
     if matches!(event, WindowEvent::Destroyed) {
-        if window.label().starts_with("pin-") { crate::services::pins::remove_pin(window.app_handle(), window.label()); }
+        if window.label().starts_with("pin-") {
+            crate::services::pins::remove_pin(window.app_handle(), window.label());
+        }
         if let Some(note_id) = window.label().strip_prefix("tile-") {
             let _ = window
                 .app_handle()
@@ -1337,7 +1348,10 @@ fn setup_app_menu(_app: &mut App) -> Result<(), Box<dyn Error>> {
 }
 
 fn handle_tray_menu_event(app: &AppHandle, id: &str) -> Result<(), Box<dyn Error>> {
-    if id == "pin-image" { crate::services::pins::request_pin(app); return Ok(()); }
+    if id == "pin-image" {
+        crate::services::pins::request_pin(app);
+        return Ok(());
+    }
     if id == "restore-background" {
         let store = default_store()?;
         let mut config = store.load_config()?;
@@ -1417,7 +1431,11 @@ pub fn show_main_window(app: &AppHandle) -> Result<(), AppError> {
     if let Some(window) = app.get_webview_window(MAIN_WINDOW_LABEL) {
         window.set_title(locales::main_window_title(locale))?;
         window.unminimize()?;
-        window.set_shadow(load_config().map(|config| config.main_background_transparency < 100).unwrap_or(true))?;
+        window.set_shadow(
+            load_config()
+                .map(|config| config.main_background_transparency < 100)
+                .unwrap_or(true),
+        )?;
         window.show()?;
         window.set_focus()?;
         return Ok(());
@@ -1439,7 +1457,9 @@ pub fn show_main_window(app: &AppHandle) -> Result<(), AppError> {
             // with native traffic lights; decorations: false would conflict.
             decorations: false,
             always_on_top: false,
-            shadow: load_config().map(|config| config.main_background_transparency < 100).unwrap_or(true),
+            shadow: load_config()
+                .map(|config| config.main_background_transparency < 100)
+                .unwrap_or(true),
             skip_taskbar: false,
             bounds: None,
         },
@@ -1982,10 +2002,15 @@ fn setup_global_shortcut_plugin(app: &AppHandle) -> tauri::Result<()> {
                     .unwrap_or(ShortcutAction::OpenNotepad);
 
                 if action == ShortcutAction::PinImage {
-                    crate::services::pins::shortcut_event(app, event.state() == ShortcutState::Pressed);
+                    crate::services::pins::shortcut_event(
+                        app,
+                        event.state() == ShortcutState::Pressed,
+                    );
                     return;
                 }
-                if event.state() != ShortcutState::Pressed { return; }
+                if event.state() != ShortcutState::Pressed {
+                    return;
+                }
 
                 let app_for_closure = app.clone();
                 match action {
@@ -2203,14 +2228,28 @@ fn shortcut_bindings_from_config(config: &AppConfig) -> Result<ShortcutBindings,
         }));
     }
 
-    let pin_image = if config.pin_image_shortcut.is_empty() { None } else {
-        Some(parse_configured_shortcut("pinImageShortcut", &config.pin_image_shortcut)?)
+    let pin_image = if config.pin_image_shortcut.is_empty() {
+        None
+    } else {
+        Some(parse_configured_shortcut(
+            "pinImageShortcut",
+            &config.pin_image_shortcut,
+        )?)
     };
-    if pin_image.as_ref().is_some_and(|pin| open_notepad.as_ref() == Some(pin) || toggle_visibility.as_ref() == Some(pin)) {
-        return Err(Box::new(AppError { code: "duplicateShortcut".into(),
-            message: "贴图快捷键必须与其他快捷键不同".into(), details: Default::default() }));
+    if pin_image.as_ref().is_some_and(|pin| {
+        open_notepad.as_ref() == Some(pin) || toggle_visibility.as_ref() == Some(pin)
+    }) {
+        return Err(Box::new(AppError {
+            code: "duplicateShortcut".into(),
+            message: "贴图快捷键必须与其他快捷键不同".into(),
+            details: Default::default(),
+        }));
     }
-    Ok(ShortcutBindings { open_notepad, toggle_visibility, pin_image })
+    Ok(ShortcutBindings {
+        open_notepad,
+        toggle_visibility,
+        pin_image,
+    })
 }
 
 #[cfg(desktop)]
@@ -2226,23 +2265,36 @@ fn install_global_shortcut_bindings(
     }
 
     let mut first_failure = None;
-    for shortcut in [&bindings.open_notepad, &bindings.toggle_visibility, &bindings.pin_image].into_iter().flatten() {
+    for shortcut in [
+        &bindings.open_notepad,
+        &bindings.toggle_visibility,
+        &bindings.pin_image,
+    ]
+    .into_iter()
+    .flatten()
+    {
         if let Err(failure) = app.global_shortcut().register(*shortcut) {
-            if first_failure.is_none() { first_failure = Some(failure); }
+            if first_failure.is_none() {
+                first_failure = Some(failure);
+            }
         }
     }
     if let Some(state) = app.try_state::<RuntimeState>() {
         state.set_shortcut_bindings(bindings);
     }
 
-    if let Some(failure) = first_failure { return Err(Box::new(failure)); }
+    if let Some(failure) = first_failure {
+        return Err(Box::new(failure));
+    }
     Ok(())
 }
 
 #[cfg(desktop)]
 fn apply_global_shortcut_config(app: &AppHandle, config: &AppConfig) -> Result<(), Box<dyn Error>> {
     if let Err(failure) = install_global_shortcut_bindings(app, config, true) {
-        if let Ok(previous) = load_config() { let _ = install_global_shortcut_bindings(app, &previous, true); }
+        if let Ok(previous) = load_config() {
+            let _ = install_global_shortcut_bindings(app, &previous, true);
+        }
         return Err(failure);
     }
     Ok(())
@@ -2654,7 +2706,10 @@ mod tests {
         config.pin_image_shortcut = "Ctrl+Shift+H".into();
         assert!(shortcut_bindings_from_config(&config).is_err());
         config.pin_image_shortcut = String::new();
-        assert!(shortcut_bindings_from_config(&config).unwrap().pin_image.is_none());
+        assert!(shortcut_bindings_from_config(&config)
+            .unwrap()
+            .pin_image
+            .is_none());
     }
 
     #[cfg(desktop)]
@@ -2662,7 +2717,10 @@ mod tests {
     fn routes_image_pin_shortcut_to_its_own_action() {
         let config = test_app_config("Ctrl+Space", "");
         let bindings = shortcut_bindings_from_config(&config).unwrap();
-        assert_eq!(bindings.action_for(bindings.pin_image.as_ref().unwrap()), Some(ShortcutAction::PinImage));
+        assert_eq!(
+            bindings.action_for(bindings.pin_image.as_ref().unwrap()),
+            Some(ShortcutAction::PinImage)
+        );
     }
 
     #[cfg(desktop)]

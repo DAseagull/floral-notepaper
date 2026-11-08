@@ -91,31 +91,32 @@ export default function ImagePin() {
   }, []);
   useEffect(() => {
     let cancelled = false;
+    const prefix = getCurrentWindow().label;
     const resource = Menu.new({
       items: [
         {
-          id: "copy",
+          id: `${prefix}-copy`,
           text: "复制图片",
           action: () => {
             void copy();
           },
         },
         {
-          id: "save",
+          id: `${prefix}-save`,
           text: "另存为 PNG…",
           action: () => {
             void saveImage();
           },
         },
         {
-          id: "reset",
+          id: `${prefix}-reset`,
           text: "原始尺寸（限制在屏幕内）",
           action: () => {
             void run(() => zoom(1));
           },
         },
         {
-          id: "close",
+          id: `${prefix}-close`,
           text: "关闭贴图",
           action: () => {
             void getCurrentWindow().close();

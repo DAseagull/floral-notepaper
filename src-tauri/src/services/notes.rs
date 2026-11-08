@@ -721,6 +721,7 @@ impl NoteStore {
         }
 
         let mut config: AppConfig = serde_json::from_str(&fs::read_to_string(&path)?)?;
+        let previous = config.clone();
         // config 中记录的 dataDir 是上次运行时数据所在位置；若本次 resolve 出的
         // self.data_dir 与之不同（如 FLORAL_NOTEPAPER_DATA_DIR 被改），尝试搬运旧数据
         self.migrate_data_dir_if_relocated(&mut config);
@@ -728,7 +729,9 @@ impl NoteStore {
         config.tab_indent_size = config.tab_indent_size.clamp(1, 8);
         config.main_background_transparency = config.main_background_transparency.min(100);
         config.default_surface_transparency = config.default_surface_transparency.min(100);
-        write_json_atomic(&path, &config)?;
+        if config != previous {
+            write_json_atomic(&path, &config)?;
+        }
         fs::create_dir_all(self.data_dir.join("notes"))?;
         if self.migrate_macos_shortcut_default(&mut config)? {
             write_json_atomic(&path, &config)?;
@@ -1767,7 +1770,9 @@ fn default_locale() -> String {
     "zh-CN".into()
 }
 
-fn default_pin_shortcut() -> String { "Ctrl+Alt+V".into() }
+fn default_pin_shortcut() -> String {
+    "Ctrl+Alt+V".into()
+}
 
 #[cfg(test)]
 mod tests {
@@ -1814,7 +1819,10 @@ mod tests {
         config.default_surface_transparency = 200;
         let saved = store.save_config(config).unwrap();
         assert_eq!(saved.main_background_transparency, 100);
-        assert_eq!(store.load_config().unwrap().default_surface_transparency, 100);
+        assert_eq!(
+            store.load_config().unwrap().default_surface_transparency,
+            100
+        );
     }
 
     #[test]
