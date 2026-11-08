@@ -34,7 +34,7 @@ describe("AboutPanel", () => {
     expect(markup).toContain("更新");
     // Update status has not hydrated yet: the update section shows a loading
     // placeholder instead of full update controls (avoids MSIX controls flash).
-    expect(markup).toContain("正在读取更新设置");
+    expect(markup).toContain("个人定制版");
     expect(markup).not.toContain("检查更新");
     expect(markup).not.toContain("自动检查更新");
   });

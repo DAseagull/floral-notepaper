@@ -1767,6 +1767,8 @@ fn default_locale() -> String {
     "zh-CN".into()
 }
 
+fn default_pin_shortcut() -> String { "Ctrl+Alt+V".into() }
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -1793,6 +1795,26 @@ mod tests {
         write_json_atomic(&store.config_path(), &store.default_config())
             .expect("seed isolated test config");
         store
+    }
+
+    #[test]
+    fn legacy_configuration_defaults_to_opaque_backgrounds() {
+        let store = test_store("personal-legacy-appearance");
+        let mut json = serde_json::to_value(store.default_config()).unwrap();
+        let object = json.as_object_mut().unwrap();
+        object.remove("pinImageShortcut");
+        object.remove("mainBackgroundTransparency");
+        object.remove("defaultSurfaceTransparency");
+        let config: AppConfig = serde_json::from_value(json).unwrap();
+        assert_eq!(config.main_background_transparency, 0);
+        assert_eq!(config.default_surface_transparency, 0);
+        assert_eq!(config.pin_image_shortcut, "Ctrl+Alt+V");
+        let mut config = config;
+        config.main_background_transparency = 255;
+        config.default_surface_transparency = 200;
+        let saved = store.save_config(config).unwrap();
+        assert_eq!(saved.main_background_transparency, 100);
+        assert_eq!(store.load_config().unwrap().default_surface_transparency, 100);
     }
 
     #[test]
@@ -2468,5 +2490,3 @@ mod tests {
         );
     }
 }
-
-fn default_pin_shortcut() -> String { "Ctrl+Alt+V".into() }

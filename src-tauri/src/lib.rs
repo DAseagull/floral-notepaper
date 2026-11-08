@@ -454,6 +454,7 @@ pub fn run() {
                 let _ = scope.allow_directory(data.join("backgrounds"), true);
             }
             app.manage(services::pins::PinState::default());
+            services::pins::initialize(app.handle());
             app.manage(services::appearance::AppearanceState::default());
             let updater_state = updater::UpdaterState::new(app.package_info().version.to_string());
             if let Err(error) = updater_state.initialize() {

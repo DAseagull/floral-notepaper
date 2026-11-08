@@ -12,6 +12,7 @@ describe("window routes", () => {
       noteId: "note-1",
     });
     expect(routeFromSearch("?view=unknown")).toEqual({ view: "main" });
+    expect(routeFromSearch("?view=pin&noteId=ignored")).toEqual({ view: "pin" });
   });
 
   it("builds app urls for dynamic windows", () => {

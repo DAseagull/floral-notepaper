@@ -2,7 +2,7 @@ import { getVersion } from "@tauri-apps/api/app";
 import { openUrl } from "@tauri-apps/plugin-opener";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { UpdateSettingsSection } from "../features/update/UpdateSettingsSection";
+import { PersonalUpdateInfo as UpdateSettingsSection } from "./PersonalUpdateInfo";
 import contributorsData from "../generated/contributors.json";
 import { getTips, parseTip } from "../locales/tips";
 

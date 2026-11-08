@@ -18,6 +18,7 @@ const MAX_PINS: usize = 20;
 pub struct PinState {
     entries: Mutex<HashMap<String, PinImage>>,
     busy: AtomicBool,
+    shortcut_down: AtomicBool,
     last_request: Mutex<Option<Instant>>,
 }
 
@@ -39,6 +40,32 @@ fn validate_dimensions(width: u32, height: u32, bytes: usize) -> Result<(), AppE
         return Err(error("图片为空、像素数据无效或超过 3200 万像素上限"));
     }
     Ok(())
+}
+
+pub fn initialize(app: &AppHandle) {
+    // A crashed process can leave temporary files; only remove this feature's UUID-named PNGs.
+    let Ok(directory) = app.path().app_cache_dir().map(|path| path.join("pins")) else { return; };
+    let Ok(entries) = fs::read_dir(directory) else { return; };
+    for entry in entries.flatten() {
+        let name = entry.file_name().to_string_lossy().to_string();
+        if name.strip_prefix("pin-").and_then(|name| name.strip_suffix(".png"))
+            .is_some_and(|id| uuid::Uuid::parse_str(id).is_ok()) {
+            let _ = fs::remove_file(entry.path());
+        }
+    }
+}
+
+pub fn shortcut_event(app: &AppHandle, pressed: bool) {
+    let previous = app.state::<PinState>().shortcut_down.swap(pressed, Ordering::SeqCst);
+    if pressed && !previous { request_pin(app); }
+}
+
+impl Drop for PinState {
+    fn drop(&mut self) {
+        if let Ok(entries) = self.entries.get_mut() {
+            for image in entries.values() { let _ = fs::remove_file(&image.path); }
+        }
+    }
 }
 
 pub fn request_pin(app: &AppHandle) {

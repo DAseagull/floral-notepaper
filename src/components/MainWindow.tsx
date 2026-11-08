@@ -1321,9 +1321,11 @@ export function MainWindow({
   };
 
   const settingsSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const settingsVersion = useRef(0);
 
   const persistSettings = useCallback(
     (nextConfig: AppConfig) => {
+      const version = settingsVersion.current;
       if (settingsSaveTimer.current) {
         clearTimeout(settingsSaveTimer.current);
       }
@@ -1336,6 +1338,7 @@ export function MainWindow({
         };
         try {
           const savedConfig = await saveConfig(normalizedConfig);
+          if (version !== settingsVersion.current) return;
           setSettingsConfig(savedConfig);
           setSavedDataDir(savedConfig.dataDir);
           setViewMode(normalizeViewMode(savedConfig.defaultViewMode));
@@ -1357,9 +1360,11 @@ export function MainWindow({
   );
 
   useEffect(() => {
-    const listener = listen<AppConfig>("config-changed", ({ payload }) =>
-      setSettingsConfig(payload),
-    );
+    const listener = listen<AppConfig>("restore-main-background", ({ payload }) => {
+      settingsVersion.current += 1;
+      if (settingsSaveTimer.current) clearTimeout(settingsSaveTimer.current);
+      setSettingsConfig(payload);
+    });
     return () => {
       void listener.then((unlisten) => unlisten());
     };
@@ -1367,6 +1372,7 @@ export function MainWindow({
 
   const handleSettingsChange = useCallback(
     (nextConfig: AppConfig) => {
+      settingsVersion.current += 1;
       setSettingsConfig(nextConfig);
       void emit("config-changed", nextConfig);
       persistSettings(nextConfig);
@@ -1997,7 +2003,7 @@ export function MainWindow({
         >
           <div className="flex items-center gap-3 min-w-0">
             <span className="text-[15px] font-serif font-medium text-ink-soft tracking-wide leading-none">
-              花笺
+              花笺海鸥
             </span>
             <span className="text-[11px] text-ink-ghost font-body leading-none translate-y-px">
               —

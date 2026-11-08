@@ -133,7 +133,12 @@ export function NotePad({
   const [mode, setMode] = useState<OpenMode>("new");
   const [notes, setNotes] = useState<NoteMetadata[]>([]);
   const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
-  const { transparency, change: changeTransparency } = useSurfaceTransparency(editingNoteId);
+  const {
+    transparency,
+    change: changeTransparency,
+    resetDraft: resetDraftTransparency,
+    flush: flushTransparency,
+  } = useSurfaceTransparency(editingNoteId);
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [status, setStatus] = useState<NotePadStatus>("empty");
@@ -324,6 +329,7 @@ export function NotePad({
       dormantRef.current = false;
       hasEnteredOnce.current = true;
       setEditingNoteId(null);
+      resetDraftTransparency();
       setTitle("");
       setContent("");
       setMode("new");
@@ -599,7 +605,8 @@ export function NotePad({
     }
   };
 
-  const handleClose = useCallback(() => {
+  const handleClose = useCallback(async () => {
+    await flushTransparency();
     setIsExiting(true);
     if (surfaceMode === "tile") {
       void closeCurrentWindow().catch((error) => {
@@ -627,7 +634,7 @@ export function NotePad({
         setIsExiting(false);
         showToast(getErrorMessage(error));
       });
-  }, [surfaceMode]);
+  }, [surfaceMode, flushTransparency]);
 
   const copyTileContent = useCallback(async () => {
     try {
@@ -656,6 +663,10 @@ export function NotePad({
     function handleSurfaceActionRequest(event: Event) {
       const action = surfaceActionFromEvent(event);
       if (!action) return;
+      if (action === "transparency") {
+        window.dispatchEvent(new Event("floral-open-transparency"));
+        return;
+      }
 
       if (action === "copy") {
         void copyTileContentRef.current();
@@ -712,6 +723,7 @@ export function NotePad({
   };
 
   const resetDraft = () => {
+    resetDraftTransparency();
     setEditingNoteId(null);
     setTitle("");
     setContent("");

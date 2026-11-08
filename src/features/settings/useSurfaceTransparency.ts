@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
+import { getCurrentWindow } from "@tauri-apps/api/window";
 import { getConfig } from "./api";
 import { normalizeTransparency } from "./transparency";
 import type { AppConfig } from "./types";
@@ -117,5 +118,34 @@ export function useSurfaceTransparency(noteId: string | null) {
     [noteId, persist],
   );
 
-  return { transparency: normalizeTransparency(override ?? defaultValue), change };
+  const resetDraft = useCallback(() => {
+    if (pending.current) {
+      clearTimeout(pending.current.timer);
+      pending.current.save();
+      pending.current = null;
+    }
+    setOverride(null);
+  }, []);
+  const flush = useCallback(() => {
+    if (pending.current) {
+      clearTimeout(pending.current.timer);
+      pending.current.save();
+      pending.current = null;
+    }
+    return writeQueue.current;
+  }, []);
+  useEffect(() => {
+    const unlisten = getCurrentWindow().onCloseRequested(async () => {
+      await flush();
+    });
+    return () => {
+      void unlisten.then((stop) => stop());
+    };
+  }, [flush]);
+  return {
+    transparency: normalizeTransparency(override ?? defaultValue),
+    change,
+    resetDraft,
+    flush,
+  };
 }

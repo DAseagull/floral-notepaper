@@ -613,6 +613,13 @@ fn force_terminate_self() -> ! {
     std::process::exit(0);
 }
 
+fn personal_update_guard() -> Result<(), AppError> {
+    if cfg!(test) { return Ok(()); }
+    Err(AppError { code: "personalBuild".into(),
+        message: "个人定制版通过 DAseagull/floral-notepaper 仓库下载更新。".into(),
+        details: Default::default() })
+}
+
 #[cfg(test)]
 mod tests {
     use super::super::version::CURRENT_APP_VERSION;
@@ -732,11 +739,4 @@ mod tests {
             INSTALL_PREPARE_MAX_TIMEOUT
         );
     }
-}
-
-fn personal_update_guard() -> Result<(), AppError> {
-    if cfg!(test) { return Ok(()); }
-    Err(AppError { code: "personalBuild".into(),
-        message: "个人定制版通过 DAseagull/floral-notepaper 仓库下载更新。".into(),
-        details: Default::default() })
 }

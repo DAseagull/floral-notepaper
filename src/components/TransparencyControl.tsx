@@ -10,6 +10,11 @@ export function TransparencyControl({
   const [open, setOpen] = useState(false);
   const root = useRef<HTMLDivElement>(null);
   useEffect(() => {
+    const reveal = () => setOpen(true);
+    window.addEventListener("floral-open-transparency", reveal);
+    return () => window.removeEventListener("floral-open-transparency", reveal);
+  }, []);
+  useEffect(() => {
     if (!open) return;
     const dismiss = (event: PointerEvent) => {
       if (!root.current?.contains(event.target as Node)) setOpen(false);

@@ -9,6 +9,7 @@ export interface TileContextMenuItem {
 
 export function getTileContextMenuItems(translate: TFunction = t): TileContextMenuItem[] {
   return [
+    { action: "transparency", label: "背景透明度…" },
     {
       action: "copy",
       label: translate("contextMenu.tile.copy", { defaultValue: "复制" }),

@@ -1093,6 +1093,10 @@ pub fn apply_runtime_config(
         apply_autostart(app, next.autostart)?;
     }
 
+    if let Some(window) = app.get_webview_window(MAIN_WINDOW_LABEL) {
+        window.set_shadow(next.main_background_transparency < 100)?;
+    }
+
     Ok(())
 }
 
@@ -1340,6 +1344,7 @@ fn handle_tray_menu_event(app: &AppHandle, id: &str) -> Result<(), Box<dyn Error
         config.main_background_transparency = 0;
         let saved = store.save_config(config)?;
         let _ = app.emit("config-changed", &saved);
+        let _ = app.emit("restore-main-background", &saved);
         show_main_window(app)?;
         return Ok(());
     }
@@ -1412,6 +1417,7 @@ pub fn show_main_window(app: &AppHandle) -> Result<(), AppError> {
     if let Some(window) = app.get_webview_window(MAIN_WINDOW_LABEL) {
         window.set_title(locales::main_window_title(locale))?;
         window.unminimize()?;
+        window.set_shadow(load_config().map(|config| config.main_background_transparency < 100).unwrap_or(true))?;
         window.show()?;
         window.set_focus()?;
         return Ok(());
@@ -1431,9 +1437,9 @@ pub fn show_main_window(app: &AppHandle) -> Result<(), AppError> {
             },
             // On macOS, tauri.macos.conf.json sets titleBarStyle: "Overlay"
             // with native traffic lights; decorations: false would conflict.
-            decorations: !cfg!(target_os = "macos"),
+            decorations: false,
             always_on_top: false,
-            shadow: true,
+            shadow: load_config().map(|config| config.main_background_transparency < 100).unwrap_or(true),
             skip_taskbar: false,
             bounds: None,
         },
@@ -1970,14 +1976,16 @@ fn setup_global_shortcut_plugin(app: &AppHandle) -> tauri::Result<()> {
     app.plugin(
         tauri_plugin_global_shortcut::Builder::new()
             .with_handler(|app, shortcut, event| {
-                if event.state() != ShortcutState::Pressed {
-                    return;
-                }
-
                 let action = app
                     .try_state::<RuntimeState>()
                     .map(|state| state.shortcut_action(shortcut))
                     .unwrap_or(ShortcutAction::OpenNotepad);
+
+                if action == ShortcutAction::PinImage {
+                    crate::services::pins::shortcut_event(app, event.state() == ShortcutState::Pressed);
+                    return;
+                }
+                if event.state() != ShortcutState::Pressed { return; }
 
                 let app_for_closure = app.clone();
                 match action {
@@ -2217,18 +2225,17 @@ fn install_global_shortcut_bindings(
         app.global_shortcut().unregister_all()?;
     }
 
-    if let Some(shortcut) = &bindings.open_notepad {
-        app.global_shortcut().register(*shortcut)?;
+    let mut first_failure = None;
+    for shortcut in [&bindings.open_notepad, &bindings.toggle_visibility, &bindings.pin_image].into_iter().flatten() {
+        if let Err(failure) = app.global_shortcut().register(*shortcut) {
+            if first_failure.is_none() { first_failure = Some(failure); }
+        }
     }
-    if let Some(shortcut) = &bindings.toggle_visibility {
-        app.global_shortcut().register(*shortcut)?;
-    }
-
-    if let Some(shortcut) = &bindings.pin_image { app.global_shortcut().register(*shortcut)?; }
     if let Some(state) = app.try_state::<RuntimeState>() {
         state.set_shortcut_bindings(bindings);
     }
 
+    if let Some(failure) = first_failure { return Err(Box::new(failure)); }
     Ok(())
 }
 
@@ -2636,6 +2643,26 @@ mod tests {
             notes_dir: None,
             last_known_base_dir: None,
         }
+    }
+
+    #[cfg(desktop)]
+    #[test]
+    fn rejects_image_pin_shortcuts_that_duplicate_existing_actions() {
+        let mut config = test_app_config("Ctrl+Space", "Ctrl+Shift+H");
+        config.pin_image_shortcut = "Ctrl+Space".into();
+        assert!(shortcut_bindings_from_config(&config).is_err());
+        config.pin_image_shortcut = "Ctrl+Shift+H".into();
+        assert!(shortcut_bindings_from_config(&config).is_err());
+        config.pin_image_shortcut = String::new();
+        assert!(shortcut_bindings_from_config(&config).unwrap().pin_image.is_none());
+    }
+
+    #[cfg(desktop)]
+    #[test]
+    fn routes_image_pin_shortcut_to_its_own_action() {
+        let config = test_app_config("Ctrl+Space", "");
+        let bindings = shortcut_bindings_from_config(&config).unwrap();
+        assert_eq!(bindings.action_for(bindings.pin_image.as_ref().unwrap()), Some(ShortcutAction::PinImage));
     }
 
     #[cfg(desktop)]
