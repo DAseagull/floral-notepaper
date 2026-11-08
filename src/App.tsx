@@ -1,9 +1,15 @@
-import { useEffect } from "react";
+import { useEffect, lazy, Suspense } from "react";
 import "./App.css";
 import { ContextMenuProvider } from "./components/ContextMenu";
-import { MainWindow } from "./components/MainWindow";
-import { NotePad } from "./components/NotePad";
-import { TileShowcase } from "./components/TileShowcase";
+const MainWindow = lazy(() =>
+  import("./components/MainWindow").then((module) => ({ default: module.MainWindow })),
+);
+const NotePad = lazy(() =>
+  import("./components/NotePad").then((module) => ({ default: module.NotePad })),
+);
+const TileShowcase = lazy(() =>
+  import("./components/TileShowcase").then((module) => ({ default: module.TileShowcase })),
+);
 import { ToastContainer } from "./components/Toast";
 import { tabToIndentListener } from "indent-textarea";
 import { getConfig } from "./features/settings/api";
@@ -13,7 +19,17 @@ import { getInitialRoute } from "./features/windows/windowRoutes";
 import { syncLanguage } from "./locales";
 import { listen } from "@tauri-apps/api/event";
 
+const ImagePin = lazy(() => import("./components/ImagePin"));
+
 function App() {
+  return (
+    <Suspense fallback={null}>
+      {getInitialRoute().view === "pin" ? <ImagePin /> : <NoteApp />}
+    </Suspense>
+  );
+}
+
+function NoteApp() {
   const route = getInitialRoute();
   const activeView = route.view;
 

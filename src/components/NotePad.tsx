@@ -1,3 +1,6 @@
+import { useSurfaceTransparency } from "../features/settings/useSurfaceTransparency";
+import { transparencyStyle } from "../features/settings/transparency";
+import { TransparencyControl } from "./TransparencyControl";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { MouseEvent } from "react";
 import { useMemo } from "react";
@@ -130,6 +133,7 @@ export function NotePad({
   const [mode, setMode] = useState<OpenMode>("new");
   const [notes, setNotes] = useState<NoteMetadata[]>([]);
   const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
+  const { transparency, change: changeTransparency } = useSurfaceTransparency(editingNoteId);
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [status, setStatus] = useState<NotePadStatus>("empty");
@@ -723,7 +727,10 @@ export function NotePad({
     "app-surface-frame relative noise-bg w-full h-full min-h-0 bg-cloud overflow-hidden flex flex-col flex-1 border border-paper-deep/70 shadow-[0_1px_10px_rgba(26,26,24,0.06)] transition-all duration-200 ease-out";
 
   return (
-    <div className={surfaceWrapperClassName}>
+    <div
+      className={`transparency-surface ${surfaceWrapperClassName} ${transparency === 100 ? "content-only" : ""}`}
+      style={transparencyStyle(transparency)}
+    >
       {isTile ? (
         <Tile
           title={tileTitle || undefined}
@@ -735,6 +742,7 @@ export function NotePad({
             setStatus("dirty");
           }}
           color={tileColor}
+          backgroundTransparency={transparency}
           fontSize={surfaceFontSize}
           renderMarkdown={tileRenderMarkdown}
           imageBaseDir={imageBaseDir ?? undefined}
@@ -746,7 +754,9 @@ export function NotePad({
           onMouseDown={handleDrag}
           onDoubleClick={handleTileDoubleClick}
         >
+          <TransparencyControl value={transparency} onChange={changeTransparency} />
           <button
+            data-surface-chrome="true"
             type="button"
             aria-label="取消钉屏"
             title="取消钉屏"
@@ -770,9 +780,11 @@ export function NotePad({
         </Tile>
       ) : (
         <div className={padSurfaceClassName} data-surface-mode={surfaceMode}>
+          <TransparencyControl value={transparency} onChange={changeTransparency} />
           <>
             <div
-              className="flex items-center justify-between px-4 pt-3 pb-0 cursor-default"
+              data-surface-chrome="true"
+              className="flex items-center justify-between px-4 pt-3 pb-0 pr-11 cursor-default"
               onMouseDown={handleDrag}
             >
               <div className="flex items-center gap-0.5">
@@ -899,7 +911,10 @@ export function NotePad({
                   style={{ fontSize: `${surfaceFontSize}px`, tabSize: `var(--tab-indent-size, 2)` }}
                 />
 
-                <div className="flex items-center justify-between mt-auto pt-2 border-t border-paper-deep/30 shrink-0">
+                <div
+                  data-surface-chrome="true"
+                  className="flex items-center justify-between mt-auto pt-2 border-t border-paper-deep/30 shrink-0"
+                >
                   <span className="text-[11px] text-ink-ghost font-mono tabular-nums truncate max-w-[170px]">
                     {`${countNoteChars(content)} ${t("common.wordCountUnit", { defaultValue: "字" })} · ${statusLabel[status]}`}
                   </span>

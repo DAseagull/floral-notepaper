@@ -453,6 +453,8 @@ pub fn run() {
                 let _ = scope.allow_directory(data.join("images"), true);
                 let _ = scope.allow_directory(data.join("backgrounds"), true);
             }
+            app.manage(services::pins::PinState::default());
+            app.manage(services::appearance::AppearanceState::default());
             let updater_state = updater::UpdaterState::new(app.package_info().version.to_string());
             if let Err(error) = updater_state.initialize() {
                 eprintln!("failed to initialize updater infrastructure: {error}");
@@ -460,7 +462,7 @@ pub fn run() {
             app.manage(updater_state);
             // MSIX installs are updated by the Microsoft Store; the scheduler
             // must never drive in-app updates against a read-only package.
-            if !updater::platform::has_package_identity() {
+            if cfg!(test) && !updater::platform::has_package_identity() {
                 updater::start_auto_check_scheduler(app.handle().clone());
             }
             desktop::setup_desktop(app)?;
@@ -468,6 +470,11 @@ pub fn run() {
         })
         .on_window_event(desktop::handle_window_event)
         .invoke_handler(tauri::generate_handler![
+            services::pins::pin_image_get,
+            services::pins::pin_image_copy,
+            services::pins::pin_image_save,
+            services::appearance::surface_appearance_get,
+            services::appearance::surface_appearance_set,
             app_name,
             notes_list,
             notes_get,

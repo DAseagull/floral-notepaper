@@ -483,6 +483,7 @@ pub struct RuntimeConfigChanges {
     pub autostart_changed: bool,
     pub global_shortcut_changed: bool,
     pub toggle_visibility_shortcut_changed: bool,
+    pub pin_image_shortcut_changed: bool,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -556,11 +557,13 @@ struct RuntimeState {
 struct ShortcutBindings {
     open_notepad: Option<Shortcut>,
     toggle_visibility: Option<Shortcut>,
+    pin_image: Option<Shortcut>,
 }
 
 #[cfg(desktop)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum ShortcutAction {
+    PinImage,
     OpenNotepad,
     ToggleVisibility,
 }
@@ -655,7 +658,9 @@ impl RuntimeState {
 #[cfg(desktop)]
 impl ShortcutBindings {
     fn action_for(&self, shortcut: &Shortcut) -> Option<ShortcutAction> {
-        if self
+        if self.pin_image.as_ref().is_some_and(|s| s == shortcut) {
+            Some(ShortcutAction::PinImage)
+        } else if self
             .toggle_visibility
             .as_ref()
             .is_some_and(|s| s == shortcut)
@@ -750,6 +755,8 @@ fn build_tray_menu(app: &AppHandle, config: &AppConfig) -> Result<Menu<Wry>, Box
         specs[3].checked.unwrap_or(false),
         None::<&str>,
     )?;
+    let pin_image = MenuItem::with_id(app, "pin-image", "贴出剪贴板图片", true, None::<&str>)?;
+    let restore_background = MenuItem::with_id(app, "restore-background", "恢复主窗口背景", true, None::<&str>)?;
     let separator = PredefinedMenuItem::separator(app)?;
     let quit = MenuItem::with_id(app, specs[4].id, specs[4].label, true, None::<&str>)?;
 
@@ -758,6 +765,8 @@ fn build_tray_menu(app: &AppHandle, config: &AppConfig) -> Result<Menu<Wry>, Box
         &[
             &show_main,
             &quick_note,
+            &pin_image,
+            &restore_background,
             &close_to_tray,
             &autostart,
             &separator,
@@ -1004,6 +1013,7 @@ pub fn runtime_config_changes(previous: &AppConfig, next: &AppConfig) -> Runtime
         global_shortcut_changed: previous.global_shortcut != next.global_shortcut,
         toggle_visibility_shortcut_changed: previous.toggle_visibility_shortcut
             != next.toggle_visibility_shortcut,
+        pin_image_shortcut_changed: previous.pin_image_shortcut != next.pin_image_shortcut,
     }
 }
 
@@ -1075,7 +1085,7 @@ pub fn apply_runtime_config(
 ) -> Result<(), Box<dyn Error>> {
     let changes = runtime_config_changes(previous, next);
 
-    if changes.global_shortcut_changed || changes.toggle_visibility_shortcut_changed {
+    if changes.global_shortcut_changed || changes.toggle_visibility_shortcut_changed || changes.pin_image_shortcut_changed {
         apply_global_shortcut_config(app, next)?;
     }
 
@@ -1160,6 +1170,7 @@ pub fn setup_desktop(app: &mut App) -> Result<(), Box<dyn Error>> {
 
 pub fn handle_window_event(window: &Window, event: &WindowEvent) {
     if matches!(event, WindowEvent::Destroyed) {
+        if window.label().starts_with("pin-") { crate::services::pins::remove_pin(window.app_handle(), window.label()); }
         if let Some(note_id) = window.label().strip_prefix("tile-") {
             let _ = window
                 .app_handle()
@@ -1322,6 +1333,16 @@ fn setup_app_menu(_app: &mut App) -> Result<(), Box<dyn Error>> {
 }
 
 fn handle_tray_menu_event(app: &AppHandle, id: &str) -> Result<(), Box<dyn Error>> {
+    if id == "pin-image" { crate::services::pins::request_pin(app); return Ok(()); }
+    if id == "restore-background" {
+        let store = default_store()?;
+        let mut config = store.load_config()?;
+        config.main_background_transparency = 0;
+        let saved = store.save_config(config)?;
+        let _ = app.emit("config-changed", &saved);
+        show_main_window(app)?;
+        return Ok(());
+    }
     match tray_menu_action(id) {
         Some(TrayMenuAction::ShowMain) => show_main_window(app)?,
         Some(TrayMenuAction::QuickNote) => {
@@ -1960,6 +1981,7 @@ fn setup_global_shortcut_plugin(app: &AppHandle) -> tauri::Result<()> {
 
                 let app_for_closure = app.clone();
                 match action {
+                    ShortcutAction::PinImage => crate::services::pins::request_pin(app),
                     ShortcutAction::ToggleVisibility => {
                         if let Err(error) = app.run_on_main_thread(move || {
                             toggle_app_visibility(&app_for_closure);
@@ -2173,10 +2195,14 @@ fn shortcut_bindings_from_config(config: &AppConfig) -> Result<ShortcutBindings,
         }));
     }
 
-    Ok(ShortcutBindings {
-        open_notepad,
-        toggle_visibility,
-    })
+    let pin_image = if config.pin_image_shortcut.is_empty() { None } else {
+        Some(parse_configured_shortcut("pinImageShortcut", &config.pin_image_shortcut)?)
+    };
+    if pin_image.as_ref().is_some_and(|pin| open_notepad.as_ref() == Some(pin) || toggle_visibility.as_ref() == Some(pin)) {
+        return Err(Box::new(AppError { code: "duplicateShortcut".into(),
+            message: "贴图快捷键必须与其他快捷键不同".into(), details: Default::default() }));
+    }
+    Ok(ShortcutBindings { open_notepad, toggle_visibility, pin_image })
 }
 
 #[cfg(desktop)]
@@ -2198,6 +2224,7 @@ fn install_global_shortcut_bindings(
         app.global_shortcut().register(*shortcut)?;
     }
 
+    if let Some(shortcut) = &bindings.pin_image { app.global_shortcut().register(*shortcut)?; }
     if let Some(state) = app.try_state::<RuntimeState>() {
         state.set_shortcut_bindings(bindings);
     }
@@ -2207,7 +2234,11 @@ fn install_global_shortcut_bindings(
 
 #[cfg(desktop)]
 fn apply_global_shortcut_config(app: &AppHandle, config: &AppConfig) -> Result<(), Box<dyn Error>> {
-    install_global_shortcut_bindings(app, config, true)
+    if let Err(failure) = install_global_shortcut_bindings(app, config, true) {
+        if let Ok(previous) = load_config() { let _ = install_global_shortcut_bindings(app, &previous, true); }
+        return Err(failure);
+    }
+    Ok(())
 }
 
 #[cfg(not(desktop))]
@@ -2596,6 +2627,9 @@ mod tests {
             render_html_markdown: false,
             split_scroll_sync: true,
             open_at_cursor: true,
+            pin_image_shortcut: "Ctrl+Alt+V".into(),
+            main_background_transparency: 0,
+            default_surface_transparency: 0,
             surface_width: None,
             surface_height: None,
             toggle_visibility_shortcut: toggle_visibility_shortcut.into(),
@@ -2681,6 +2715,9 @@ mod tests {
             render_html_markdown: false,
             split_scroll_sync: true,
             open_at_cursor: true,
+            pin_image_shortcut: "Ctrl+Alt+V".into(),
+            main_background_transparency: 0,
+            default_surface_transparency: 0,
             surface_width: None,
             surface_height: None,
             toggle_visibility_shortcut: String::new(),
@@ -2718,6 +2755,9 @@ mod tests {
             render_html_markdown: false,
             split_scroll_sync: true,
             open_at_cursor: true,
+            pin_image_shortcut: "Ctrl+Alt+V".into(),
+            main_background_transparency: 0,
+            default_surface_transparency: 0,
             surface_width: None,
             surface_height: None,
             toggle_visibility_shortcut: "Ctrl+Shift+H".into(),
@@ -2731,6 +2771,7 @@ mod tests {
                 autostart_changed: true,
                 global_shortcut_changed: true,
                 toggle_visibility_shortcut_changed: true,
+                pin_image_shortcut_changed: false,
             }
         );
         assert_eq!(
@@ -2739,6 +2780,7 @@ mod tests {
                 autostart_changed: false,
                 global_shortcut_changed: false,
                 toggle_visibility_shortcut_changed: false,
+                pin_image_shortcut_changed: false,
             }
         );
     }

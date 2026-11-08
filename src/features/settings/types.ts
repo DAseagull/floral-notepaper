@@ -32,6 +32,9 @@ export interface AppConfig {
   surfaceHeight?: number;
   toggleVisibilityShortcut: string;
   openAtCursor: boolean;
+  pinImageShortcut?: string;
+  mainBackgroundTransparency?: number;
+  defaultSurfaceTransparency?: number;
   backgroundImagePath?: string;
   backgroundFit?: BackgroundFit;
   backgroundDim?: number;

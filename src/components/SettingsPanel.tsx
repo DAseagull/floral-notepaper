@@ -2,7 +2,7 @@ import { invoke } from "@tauri-apps/api/core";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { checkGlobalShortcut, chooseBackgroundImage } from "../features/settings/api";
-import { UpdateSettingsSection } from "../features/update/UpdateSettingsSection";
+import { PersonalUpdateInfo as UpdateSettingsSection } from "./PersonalUpdateInfo";
 import type {
   AppConfig,
   BackgroundFit,
@@ -89,7 +89,10 @@ export function SettingsPanel({ config, onChange, onMigrateDataDir, onClose }: S
   );
 
   return (
-    <aside className="w-[360px] h-full shrink-0 border-l border-paper-deep/30 bg-cloud/92 backdrop-blur-sm flex flex-col">
+    <aside
+      data-solid-ui="true"
+      className="w-[360px] h-full shrink-0 border-l border-paper-deep/30 bg-cloud/92 backdrop-blur-sm flex flex-col"
+    >
       <div className="flex items-center justify-between h-11 px-4 border-b border-paper-deep/25">
         <h2 className="text-[13px] font-display font-medium text-ink-soft">
           {t("settings.title", { defaultValue: "应用设置" })}
@@ -128,6 +131,22 @@ export function SettingsPanel({ config, onChange, onMigrateDataDir, onClose }: S
               watchSystemTheme(v);
             }}
           />
+        </section>
+
+        <section className="space-y-3">
+          <TransparencySetting
+            label="主窗口背景透明度"
+            value={config.mainBackgroundTransparency ?? 0}
+            onChange={(value) => setConfigValue("mainBackgroundTransparency", value)}
+          />
+          <TransparencySetting
+            label="默认便签背景透明度"
+            value={config.defaultSurfaceTransparency ?? 0}
+            onChange={(value) => setConfigValue("defaultSurfaceTransparency", value)}
+          />
+          <p className="text-[11px] text-ink-faint leading-relaxed">
+            100% 时只显示内容。每张便签可通过右上角 ◐ 单独调整；托盘菜单可恢复主窗口背景。
+          </p>
         </section>
 
         <section className="space-y-2">
@@ -218,6 +237,17 @@ export function SettingsPanel({ config, onChange, onMigrateDataDir, onClose }: S
             checked={config.splitScrollSync ?? true}
             onChange={(checked) => setConfigValue("splitScrollSync", checked)}
           />
+        </section>
+
+        <section className="space-y-2">
+          <label className="block text-[11px] text-ink-faint">贴图快捷键</label>
+          <ShortcutRecorder
+            value={config.pinImageShortcut ?? "Ctrl+Alt+V"}
+            onChange={(value) => setConfigValue("pinImageShortcut", value)}
+          />
+          <p className="text-[11px] text-ink-faint leading-relaxed">
+            先用 Shift+Win+S 截图，再按此快捷键贴到屏幕。滚轮缩放，右键复制、保存或关闭。
+          </p>
         </section>
 
         {/* 快捷键功能设置区域，与上方常规设置分开 */}
@@ -733,5 +763,34 @@ function ShortcutRecorder({ value, onChange }: ShortcutRecorderProps) {
       </div>
       <p className={`min-h-4 text-[11px] ${statusClass}`}>{resolveMsg(checkMsg)}</p>
     </div>
+  );
+}
+
+function TransparencySetting({
+  label,
+  value,
+  onChange,
+}: {
+  label: string;
+  value: number;
+  onChange: (value: number) => void;
+}) {
+  return (
+    <label className="block text-[11px] text-ink-faint">
+      {label}
+      <div className="flex items-center gap-3 mt-2">
+        <input
+          aria-label={label}
+          type="range"
+          min="0"
+          max="100"
+          step="1"
+          value={value}
+          onChange={(event) => onChange(Number(event.target.value))}
+          className="flex-1 accent-bamboo"
+        />
+        <output className="font-mono w-10 text-right">{value}%</output>
+      </div>
+    </label>
   );
 }

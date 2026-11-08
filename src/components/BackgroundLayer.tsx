@@ -28,7 +28,10 @@ export function BackgroundLayer({ config }: BackgroundLayerProps) {
   };
 
   return (
-    <div className="absolute inset-0 pointer-events-none overflow-hidden z-0">
+    <div
+      className="surface-image-background absolute inset-0 pointer-events-none overflow-hidden z-0"
+      style={{ opacity: "var(--surface-opacity, 1)" }}
+    >
       {fit === "repeat" ? (
         <div
           className="absolute inset-0"

@@ -17,6 +17,7 @@ export interface TileProps extends Omit<
   fontSize?: number;
   renderMarkdown?: boolean;
   imageBaseDir?: string;
+  backgroundTransparency?: number;
   onContentChange?: (content: string) => void;
 }
 
@@ -79,6 +80,7 @@ export function Tile({
   renderMarkdown = false,
   imageBaseDir,
   onContentChange,
+  backgroundTransparency = 0,
   className = "",
   style,
   children,
@@ -99,7 +101,9 @@ export function Tile({
   }, [tileColor]);
   const mergedStyle: CSSProperties = {
     width,
-    backgroundColor: tileColor,
+    backgroundColor: chroma(tileColor)
+      .alpha(1 - Math.min(100, Math.max(0, backgroundTransparency)) / 100)
+      .css(),
     borderColor,
     transition: "box-shadow 0.3s ease",
     ...(rotation ? { transform: `rotate(${rotation}deg)` } : {}),
@@ -150,7 +154,7 @@ export function Tile({
         )}
       </div>
 
-      <CornerMarks color={cornerColor} />
+      {backgroundTransparency < 100 && <CornerMarks color={cornerColor} />}
       {children}
     </div>
   );

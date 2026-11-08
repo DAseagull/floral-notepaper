@@ -1,3 +1,4 @@
+import { normalizeTransparency, transparencyStyle } from "../features/settings/transparency";
 import {
   useCallback,
   useDeferredValue,
@@ -1355,6 +1356,15 @@ export function MainWindow({
     [savedDataDir, refreshNotes, loadNote, clearCurrentNote],
   );
 
+  useEffect(() => {
+    const listener = listen<AppConfig>("config-changed", ({ payload }) =>
+      setSettingsConfig(payload),
+    );
+    return () => {
+      void listener.then((unlisten) => unlisten());
+    };
+  }, []);
+
   const handleSettingsChange = useCallback(
     (nextConfig: AppConfig) => {
       setSettingsConfig(nextConfig);
@@ -1972,10 +1982,14 @@ export function MainWindow({
     : t("main.window.about", { defaultValue: "关于" });
 
   return (
-    <div className="w-full h-screen flex flex-col">
+    <div
+      className={`transparency-surface w-full h-screen flex flex-col ${normalizeTransparency(settingsConfig?.mainBackgroundTransparency) === 100 ? "content-only" : ""}`}
+      style={transparencyStyle(settingsConfig?.mainBackgroundTransparency)}
+    >
       <div className="relative noise-bg bg-cloud overflow-hidden flex flex-col flex-1">
         <BackgroundLayer config={settingsConfig} />
         <div
+          data-surface-chrome="true"
           className={`relative z-10 flex items-center justify-between h-11 bg-paper/55 backdrop-blur-[1px] border-b border-paper-deep/30 shrink-0 select-none cursor-default ${
             isMacOS ? "pl-20 pr-5" : "pl-5 pr-0"
           }`}
@@ -2159,6 +2173,7 @@ export function MainWindow({
 
         <div className="relative z-10 flex flex-1 min-h-0">
           <div
+            data-surface-chrome="true"
             className="border-r border-paper-deep/30 bg-paper/40 shrink-0 overflow-hidden transition-[width] duration-[600ms]"
             style={{ width: sidebarCollapsed ? 0 : sidebarWidth }}
           >
@@ -2694,7 +2709,10 @@ export function MainWindow({
           )}
 
           <div className="flex-1 flex flex-col min-w-0">
-            <div className="flex items-center justify-between px-4 h-10 border-b border-paper-deep/20 shrink-0 bg-paper/20">
+            <div
+              data-surface-chrome="true"
+              className="flex items-center justify-between px-4 h-10 border-b border-paper-deep/20 shrink-0 bg-paper/20"
+            >
               <div className="flex items-center gap-1">
                 <button
                   onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
@@ -3056,7 +3074,10 @@ export function MainWindow({
               )}
             </div>
 
-            <div className="flex items-center justify-between px-4 h-7 border-t border-paper-deep/20 bg-paper/30 shrink-0">
+            <div
+              data-surface-chrome="true"
+              className="flex items-center justify-between px-4 h-7 border-t border-paper-deep/20 bg-paper/30 shrink-0"
+            >
               <div className="flex items-center gap-3">
                 <span className="text-[10px] text-ink-ghost font-mono tabular-nums">
                   {t("main.statusBar.lineNumber", {

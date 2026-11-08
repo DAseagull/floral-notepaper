@@ -755,3 +755,271 @@ input::placeholder {
 :root[data-theme="dark"] .markdown-alert-caution .markdown-alert-title {
   color: #e87462;
 }
+
+/* Personal distribution appearance controls. */
+/* Background alpha is independent of content opacity, including hover paints. */
+.transparency-surface[class~="bg-bamboo-mist/40"],
+.transparency-surface [class~="bg-bamboo-mist/40"] {
+  background-color: rgb(
+    from var(--color-bamboo-mist) r g b / calc(alpha * 0.4 * var(--surface-opacity, 1))
+  );
+}
+.transparency-surface[class~="bg-bamboo-mist/70"],
+.transparency-surface [class~="bg-bamboo-mist/70"] {
+  background-color: rgb(
+    from var(--color-bamboo-mist) r g b / calc(alpha * 0.7 * var(--surface-opacity, 1))
+  );
+}
+.transparency-surface[class~="bg-cloud"],
+.transparency-surface [class~="bg-cloud"] {
+  background-color: rgb(
+    from var(--color-cloud) r g b / calc(alpha * 1 * var(--surface-opacity, 1))
+  );
+}
+.transparency-surface[class~="bg-cloud/55"],
+.transparency-surface [class~="bg-cloud/55"] {
+  background-color: rgb(
+    from var(--color-cloud) r g b / calc(alpha * 0.55 * var(--surface-opacity, 1))
+  );
+}
+.transparency-surface[class~="bg-cloud/92"],
+.transparency-surface [class~="bg-cloud/92"] {
+  background-color: rgb(
+    from var(--color-cloud) r g b / calc(alpha * 0.92 * var(--surface-opacity, 1))
+  );
+}
+.transparency-surface[class~="bg-cloud/95"],
+.transparency-surface [class~="bg-cloud/95"] {
+  background-color: rgb(
+    from var(--color-cloud) r g b / calc(alpha * 0.95 * var(--surface-opacity, 1))
+  );
+}
+.transparency-surface[class~="bg-paper-deep/15"],
+.transparency-surface [class~="bg-paper-deep/15"] {
+  background-color: rgb(
+    from var(--color-paper-deep) r g b / calc(alpha * 0.15 * var(--surface-opacity, 1))
+  );
+}
+.transparency-surface[class~="bg-paper-deep/30"],
+.transparency-surface [class~="bg-paper-deep/30"] {
+  background-color: rgb(
+    from var(--color-paper-deep) r g b / calc(alpha * 0.3 * var(--surface-opacity, 1))
+  );
+}
+.transparency-surface[class~="bg-paper-deep/40"],
+.transparency-surface [class~="bg-paper-deep/40"] {
+  background-color: rgb(
+    from var(--color-paper-deep) r g b / calc(alpha * 0.4 * var(--surface-opacity, 1))
+  );
+}
+.transparency-surface[class~="bg-paper-deep/50"],
+.transparency-surface [class~="bg-paper-deep/50"] {
+  background-color: rgb(
+    from var(--color-paper-deep) r g b / calc(alpha * 0.5 * var(--surface-opacity, 1))
+  );
+}
+.transparency-surface[class~="bg-paper-warm"],
+.transparency-surface [class~="bg-paper-warm"] {
+  background-color: rgb(
+    from var(--color-paper-warm) r g b / calc(alpha * 1 * var(--surface-opacity, 1))
+  );
+}
+.transparency-surface[class~="bg-paper-warm/40"],
+.transparency-surface [class~="bg-paper-warm/40"] {
+  background-color: rgb(
+    from var(--color-paper-warm) r g b / calc(alpha * 0.4 * var(--surface-opacity, 1))
+  );
+}
+.transparency-surface[class~="bg-paper-warm/45"],
+.transparency-surface [class~="bg-paper-warm/45"] {
+  background-color: rgb(
+    from var(--color-paper-warm) r g b / calc(alpha * 0.45 * var(--surface-opacity, 1))
+  );
+}
+.transparency-surface[class~="bg-paper-warm/50"],
+.transparency-surface [class~="bg-paper-warm/50"] {
+  background-color: rgb(
+    from var(--color-paper-warm) r g b / calc(alpha * 0.5 * var(--surface-opacity, 1))
+  );
+}
+.transparency-surface[class~="bg-paper-warm/60"],
+.transparency-surface [class~="bg-paper-warm/60"] {
+  background-color: rgb(
+    from var(--color-paper-warm) r g b / calc(alpha * 0.6 * var(--surface-opacity, 1))
+  );
+}
+.transparency-surface[class~="bg-paper-warm/70"],
+.transparency-surface [class~="bg-paper-warm/70"] {
+  background-color: rgb(
+    from var(--color-paper-warm) r g b / calc(alpha * 0.7 * var(--surface-opacity, 1))
+  );
+}
+.transparency-surface[class~="bg-paper-warm/80"],
+.transparency-surface [class~="bg-paper-warm/80"] {
+  background-color: rgb(
+    from var(--color-paper-warm) r g b / calc(alpha * 0.8 * var(--surface-opacity, 1))
+  );
+}
+.transparency-surface[class~="bg-paper-warm/90"],
+.transparency-surface [class~="bg-paper-warm/90"] {
+  background-color: rgb(
+    from var(--color-paper-warm) r g b / calc(alpha * 0.9 * var(--surface-opacity, 1))
+  );
+}
+.transparency-surface[class~="bg-paper/20"],
+.transparency-surface [class~="bg-paper/20"] {
+  background-color: rgb(
+    from var(--color-paper) r g b / calc(alpha * 0.2 * var(--surface-opacity, 1))
+  );
+}
+.transparency-surface[class~="bg-paper/30"],
+.transparency-surface [class~="bg-paper/30"] {
+  background-color: rgb(
+    from var(--color-paper) r g b / calc(alpha * 0.3 * var(--surface-opacity, 1))
+  );
+}
+.transparency-surface[class~="bg-paper/40"],
+.transparency-surface [class~="bg-paper/40"] {
+  background-color: rgb(
+    from var(--color-paper) r g b / calc(alpha * 0.4 * var(--surface-opacity, 1))
+  );
+}
+.transparency-surface[class~="bg-paper/55"],
+.transparency-surface [class~="bg-paper/55"] {
+  background-color: rgb(
+    from var(--color-paper) r g b / calc(alpha * 0.55 * var(--surface-opacity, 1))
+  );
+}
+.transparency-surface[class~="hover:bg-bamboo-mist/40"]:hover,
+.transparency-surface [class~="hover:bg-bamboo-mist/40"]:hover {
+  background-color: rgb(
+    from var(--color-bamboo-mist) r g b / calc(alpha * 0.4 * var(--surface-opacity, 1))
+  );
+}
+.transparency-surface[class~="hover:bg-bamboo-mist/50"]:hover,
+.transparency-surface [class~="hover:bg-bamboo-mist/50"]:hover {
+  background-color: rgb(
+    from var(--color-bamboo-mist) r g b / calc(alpha * 0.5 * var(--surface-opacity, 1))
+  );
+}
+.transparency-surface[class~="hover:bg-bamboo-mist/60"]:hover,
+.transparency-surface [class~="hover:bg-bamboo-mist/60"]:hover {
+  background-color: rgb(
+    from var(--color-bamboo-mist) r g b / calc(alpha * 0.6 * var(--surface-opacity, 1))
+  );
+}
+.transparency-surface[class~="hover:bg-danger-bg"]:hover,
+.transparency-surface [class~="hover:bg-danger-bg"]:hover {
+  background-color: rgb(
+    from var(--color-danger-bg) r g b / calc(alpha * 1 * var(--surface-opacity, 1))
+  );
+}
+.transparency-surface[class~="hover:bg-danger-bg/80"]:hover,
+.transparency-surface [class~="hover:bg-danger-bg/80"]:hover {
+  background-color: rgb(
+    from var(--color-danger-bg) r g b / calc(alpha * 0.8 * var(--surface-opacity, 1))
+  );
+}
+.transparency-surface[class~="hover:bg-paper-deep/50"]:hover,
+.transparency-surface [class~="hover:bg-paper-deep/50"]:hover {
+  background-color: rgb(
+    from var(--color-paper-deep) r g b / calc(alpha * 0.5 * var(--surface-opacity, 1))
+  );
+}
+.transparency-surface[class~="hover:bg-paper-warm"]:hover,
+.transparency-surface [class~="hover:bg-paper-warm"]:hover {
+  background-color: rgb(
+    from var(--color-paper-warm) r g b / calc(alpha * 1 * var(--surface-opacity, 1))
+  );
+}
+.transparency-surface[class~="hover:bg-paper-warm/70"]:hover,
+.transparency-surface [class~="hover:bg-paper-warm/70"]:hover {
+  background-color: rgb(
+    from var(--color-paper-warm) r g b / calc(alpha * 0.7 * var(--surface-opacity, 1))
+  );
+}
+
+.transparency-surface .noise-bg::before {
+  opacity: calc(0.025 * var(--surface-opacity, 1));
+}
+.transparency-surface [data-solid-ui] {
+  --surface-opacity: 1;
+}
+.content-only:not(:hover) [data-surface-chrome] {
+  opacity: 0;
+}
+.content-only:not(:hover) [data-surface-chrome]:focus-within {
+  opacity: 1;
+}
+.content-only .noise-bg::before,
+.content-only .surface-image-background {
+  display: none;
+}
+.content-only,
+.content-only :not([data-solid-ui], [data-solid-ui] *) {
+  box-shadow: none !important;
+  border-color: transparent !important;
+  backdrop-filter: none !important;
+}
+.content-only .markdown-selectable :is(pre, code, blockquote, th, td, tr, .markdown-alert) {
+  background: transparent !important;
+}
+.surface-transparency-control {
+  position: absolute;
+  right: 32px;
+  top: 8px;
+  z-index: 60;
+  opacity: 0;
+}
+.transparency-surface:hover .surface-transparency-control,
+.surface-transparency-control:focus-within,
+.surface-transparency-control.is-open {
+  opacity: 1;
+}
+.transparency-toggle {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--color-paper);
+  color: var(--color-ink);
+  cursor: pointer;
+}
+.transparency-popover {
+  position: absolute;
+  right: -24px;
+  top: 30px;
+  width: 180px;
+  padding: 12px;
+  border-radius: 10px;
+  background: var(--color-cloud);
+  color: var(--color-ink);
+  font-size: 12px;
+  box-shadow: 0 4px 20px #0003;
+}
+.transparency-popover label {
+  display: block;
+}
+.transparency-popover output {
+  float: right;
+}
+.transparency-popover input {
+  width: 100%;
+  margin: 12px 0;
+  accent-color: var(--color-bamboo);
+}
+.transparency-popover button {
+  padding: 4px 6px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.transparency-popover button:hover {
+  background: var(--color-paper-warm);
+}
+.transparency-presets {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+[data-surface-mode="pad"] > .surface-transparency-control {
+  right: 8px;
+}

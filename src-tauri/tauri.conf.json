@@ -1,12 +1,12 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "花笺",
-  "version": "1.2.0",
-  "identifier": "com.floral-notepaper.app",
+  "productName": "花笺海鸥",
+  "version": "1.2.0-seagull.1",
+  "identifier": "io.github.daseagull.floral-notepaper",
   "build": {
     "beforeDevCommand": "npm run dev",
     "devUrl": "http://localhost:1420",
-    "beforeBuildCommand": "taskkill /F /IM floral-notepaper.exe 2>nul & taskkill /F /IM 花笺.exe 2>nul & npm run build",
+    "beforeBuildCommand": "npm run build",
     "frontendDist": "../dist"
   },
   "app": {
@@ -14,7 +14,7 @@
     "windows": [
       {
         "label": "main",
-        "title": "花笺",
+        "title": "花笺海鸥",
         "width": 1180,
         "height": 760,
         "minWidth": 900,
@@ -53,20 +53,7 @@
         "installerHooks": "nsis-hooks.nsh"
       }
     },
-    "fileAssociations": [
-      {
-        "ext": ["md", "markdown"],
-        "name": "Markdown Document",
-        "description": "Markdown document file",
-        "role": "Editor"
-      },
-      {
-        "ext": ["txt"],
-        "name": "Text Document",
-        "description": "Plain text file",
-        "role": "Editor"
-      }
-    ],
+    "fileAssociations": [],
     "icon": [
       "icons/32x32.png",
       "icons/128x128.png",

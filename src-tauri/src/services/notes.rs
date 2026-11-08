@@ -88,6 +88,12 @@ pub struct AppConfig {
     pub toggle_visibility_shortcut: String,
     #[serde(default = "default_open_at_cursor")]
     pub open_at_cursor: bool,
+    #[serde(default = "default_pin_shortcut")]
+    pub pin_image_shortcut: String,
+    #[serde(default)]
+    pub main_background_transparency: u8,
+    #[serde(default)]
+    pub default_surface_transparency: u8,
     // Legacy fields — read from old config, never written back
     #[serde(default, skip_serializing)]
     pub notes_dir: Option<String>,
@@ -233,9 +239,9 @@ pub(crate) fn default_config_dir() -> Result<PathBuf, AppError> {
         }
     }
     if let Some(dir) = dirs::config_dir() {
-        return Ok(dir.join("floral-notepaper"));
+        return Ok(dir.join("floral-notepaper-seagull"));
     }
-    Ok(env::current_dir()?.join("floral-notepaper"))
+    Ok(env::current_dir()?.join("floral-notepaper-seagull"))
 }
 
 fn default_data_dir() -> Result<PathBuf, AppError> {
@@ -248,14 +254,14 @@ fn default_data_dir() -> Result<PathBuf, AppError> {
 
     #[cfg(target_os = "macos")]
     if let Some(dir) = dirs::data_dir() {
-        return Ok(dir.join("花笺"));
+        return Ok(dir.join("花笺海鸥"));
     }
 
     if let Some(dir) = dirs::document_dir() {
-        return Ok(dir.join("花笺"));
+        return Ok(dir.join("花笺海鸥"));
     }
 
-    Ok(env::current_dir()?.join("data"))
+    Ok(env::current_dir()?.join("data-seagull"))
 }
 
 fn resolve_data_dir(config_dir: &Path) -> Result<PathBuf, AppError> {
@@ -557,9 +563,11 @@ fn paths_refer_to_same_entry(first: &Path, second: &Path) -> bool {
 }
 
 fn known_data_migration_candidates() -> Vec<PathBuf> {
-    known_data_migration_candidates_for(env::var("HOME").ok(), env::var("USERPROFILE").ok())
+    // Personal builds never adopt upstream data automatically.
+    Vec::new()
 }
 
+#[cfg(test)]
 fn known_data_migration_candidates_for(
     home: Option<String>,
     userprofile: Option<String>,
@@ -718,6 +726,8 @@ impl NoteStore {
         self.migrate_data_dir_if_relocated(&mut config);
         config.data_dir = Some(self.data_dir.to_string_lossy().to_string());
         config.tab_indent_size = config.tab_indent_size.clamp(1, 8);
+        config.main_background_transparency = config.main_background_transparency.min(100);
+        config.default_surface_transparency = config.default_surface_transparency.min(100);
         write_json_atomic(&path, &config)?;
         fs::create_dir_all(self.data_dir.join("notes"))?;
         if self.migrate_macos_shortcut_default(&mut config)? {
@@ -730,6 +740,8 @@ impl NoteStore {
         self.ensure_config_dir()?;
         config.data_dir = Some(self.data_dir.to_string_lossy().to_string());
         config.tab_indent_size = config.tab_indent_size.clamp(1, 8);
+        config.main_background_transparency = config.main_background_transparency.min(100);
+        config.default_surface_transparency = config.default_surface_transparency.min(100);
         is_safe_data_dir(&self.data_dir)?;
         fs::create_dir_all(self.data_dir.join("notes"))?;
         write_json_atomic(&self.config_path(), &config)?;
@@ -1163,6 +1175,9 @@ impl NoteStore {
             surface_height: None,
             toggle_visibility_shortcut: default_toggle_visibility_shortcut(),
             open_at_cursor: default_open_at_cursor(),
+            pin_image_shortcut: "Ctrl+Alt+V".into(),
+            main_background_transparency: 0,
+            default_surface_transparency: 0,
             notes_dir: None,
             last_known_base_dir: None,
         }
@@ -1927,6 +1942,9 @@ mod tests {
             notes_dir: None,
             last_known_base_dir: None,
             open_at_cursor: true,
+            pin_image_shortcut: "Ctrl+Alt+V".into(),
+            main_background_transparency: 0,
+            default_surface_transparency: 0,
         };
 
         store.save_config(saved.clone()).expect("save config");
@@ -2450,3 +2468,5 @@ mod tests {
         );
     }
 }
+
+fn default_pin_shortcut() -> String { "Ctrl+Alt+V".into() }
