@@ -427,7 +427,8 @@ const TRAY_QUIT_ID: &str = "quit";
 
 #[cfg(target_os = "macos")]
 static FULLSCREEN_HIDING: AtomicBool = AtomicBool::new(false);
-const NOTEPAD_POOL_CAPACITY: usize = 2;
+// Keep one instant-access note without keeping a second unused renderer alive.
+const NOTEPAD_POOL_CAPACITY: usize = 1;
 
 /// Stores the file path passed as a command-line argument on cold start.
 /// The frontend retrieves and clears this value after initialization via
@@ -1050,6 +1051,7 @@ fn toggle_app_visibility(app: &AppHandle) {
         let mut focus_target = None;
         for label in &labels {
             if let Some(window) = app.get_webview_window(label) {
+                set_webview_memory_usage_level(&window, false);
                 let _ = window.unminimize();
                 let _ = window.show();
                 if focus_target.is_none() || label == MAIN_WINDOW_LABEL {
@@ -1071,6 +1073,7 @@ fn toggle_app_visibility(app: &AppHandle) {
         if window.is_visible().unwrap_or(false) {
             labels.push(label.clone());
             let _ = window.hide();
+            set_webview_memory_usage_level(&window, true);
         }
     }
 
@@ -1165,6 +1168,12 @@ pub fn setup_desktop(app: &mut App) -> Result<(), Box<dyn Error>> {
     setup_tray(app)?;
     schedule_notepad_prewarm(app.handle());
 
+    if std::env::args().any(|argument| argument == "--silent") {
+        if let Some(window) = app.get_webview_window(MAIN_WINDOW_LABEL) {
+            set_webview_memory_usage_level(&window, true);
+        }
+    }
+
     if !std::env::args().any(|a| a == "--silent") {
         if let Err(error) = show_main_window(app.handle()) {
             eprintln!("failed to show main window on startup: {error}");
@@ -1221,6 +1230,9 @@ pub fn handle_window_event(window: &Window, event: &WindowEvent) {
             }
             if let Err(error) = window.hide() {
                 eprintln!("failed to hide main window to tray: {error}");
+            }
+            if let Some(webview) = window.app_handle().get_webview_window(MAIN_WINDOW_LABEL) {
+                set_webview_memory_usage_level(&webview, true);
             }
         }
         MainWindowCloseAction::ExitApp => {
@@ -1430,6 +1442,7 @@ pub fn show_main_window(app: &AppHandle) -> Result<(), AppError> {
 
     if let Some(window) = app.get_webview_window(MAIN_WINDOW_LABEL) {
         window.set_title(locales::main_window_title(locale))?;
+        set_webview_memory_usage_level(&window, false);
         window.unminimize()?;
         window.set_shadow(
             load_config()

@@ -23,6 +23,8 @@
 
 ## 构建与验证
 
+默认只预热一张便签；主窗口隐藏到托盘时降低 WebView2 内存目标，唤回时恢复正常目标。关闭贴图会销毁对应窗口，避免图片渲染器长期驻留。
+
 `npm ci`、`npm test`、`npm run lint`、`npm run build`。
 Windows 需要 Rust MSVC 工具链及 Visual Studio C++ Build Tools；之后运行 `cargo test --manifest-path src-tauri/Cargo.toml --lib`、`cargo clippy --manifest-path src-tauri/Cargo.toml --all-targets -- -D warnings`、`cargo fmt --manifest-path src-tauri/Cargo.toml --check`、`npm run tauri build -- --bundles nsis`。
 
