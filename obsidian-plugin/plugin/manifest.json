@@ -1,0 +1,9 @@
+{
+  "id": "floral-desk",
+  "name": "花笺桌面便签",
+  "version": "1.0.0",
+  "minAppVersion": "1.15.1",
+  "description": "Windows 桌面便签、快捷记录和剪贴板贴图。",
+  "author": "DAseagull",
+  "isDesktopOnly": true
+}

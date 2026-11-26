@@ -1,0 +1,39 @@
+:root {
+  color-scheme: light;
+  font: 14px/1.55 "Segoe UI", "Microsoft YaHei UI", sans-serif;
+  color: #292318;
+  --paper: rgb(255 248 218 / 1);
+}
+* { box-sizing: border-box; }
+html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; background: transparent; }
+body { display: flex; flex-direction: column; background: var(--paper); }
+[hidden] { display: none !important; }
+button, input, textarea { font: inherit; }
+button { border: 0; border-radius: 6px; cursor: pointer; padding: 2px 6px; color: inherit; background: none; -webkit-app-region: no-drag; }
+button:hover { background: #886f3930; }
+button:focus-visible { outline: 2px solid #99640f; outline-offset: -2px; }
+#toolbar { flex: 0 0 40px; width: 100%; display: flex; align-items: center; gap: 2px; padding: 3px 5px; -webkit-app-region: drag; }
+#grip { min-width: 22px; text-align: center; cursor: move; user-select: none; }
+#title { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: left; font-weight: 600; pointer-events: none; -webkit-app-region: drag; }
+.folded #title { pointer-events: auto; -webkit-app-region: no-drag; }
+#close, #close-image, #fold { font-size: 18px; min-width: 26px; }
+#alpha-panel, #status { padding: 5px 12px; background: #fff6d5; z-index: 1; }
+#alpha-panel { position: absolute; top: 40px; right: 3px; display: grid; gap: 4px; border-radius: 6px; min-width: 160px; }
+#status { font-size: 12px; overflow-wrap: anywhere; }
+#editor, #preview { flex: 1; width: 100%; min-height: 0; padding: 6px 13px 12px; margin: 0; color: inherit; font: inherit; line-height: 1.55; background: transparent; }
+#editor { border: 0; outline: none; resize: none; }
+#preview { overflow: auto; overflow-wrap: anywhere; white-space: pre-wrap; }
+#preview > div { min-height: 1.55em; }
+#preview .heading { font-weight: 700; }
+#preview img { display: block; max-width: 100%; height: auto; }
+.clear-paper { color: #201b10; }
+.clear-paper #preview, .clear-paper #title, .clear-paper #grip, .clear-paper #toolbar button, .clear-paper #editor { text-shadow: 0 0 1px #fff, 0 0 2px #fff, 0 0 3px #fff; }
+.folded { background: var(--paper); }
+.folded.clear-paper #title, .folded.clear-paper #fold { background: #fff3c6; color: #292318; text-shadow: none; }
+.image-window { background: transparent; }
+#image-surface, #image { width: 100%; height: 100%; }
+#image-surface { position: relative; }
+#image { display: block; object-fit: contain; user-select: none; cursor: grab; touch-action: none; }
+#image:active { cursor: grabbing; }
+#image-actions { position: absolute; right: 3px; top: 3px; display: flex; align-items: center; gap: 1px; color: #fff; background: #252525e8; border-radius: 5px; opacity: 0; -webkit-app-region: no-drag; }
+#image-surface:hover #image-actions, #image-surface:focus-within #image-actions { opacity: 1; }

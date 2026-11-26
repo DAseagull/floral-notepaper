@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src data:; base-uri 'none'; form-action 'none'; frame-src 'none'">
+  <title>花笺</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="window.js" defer></script>
+</head>
+<body>
+  <header id="toolbar">
+    <span id="grip" aria-hidden="true">⋮⋮</span>
+    <button id="title" type="button" title="展开便签" tabindex="-1"></button>
+    <button id="edit" type="button">编辑</button>
+    <button id="library" type="button">在库中打开</button>
+    <button id="pin" type="button">置顶</button>
+    <button id="appearance" type="button" title="背景透明度" aria-label="背景透明度">◐</button>
+    <button id="fold" type="button" title="折叠便签" aria-label="折叠便签">⌃</button>
+    <button id="close" type="button" title="关闭 (Esc)" aria-label="关闭">×</button>
+  </header>
+  <aside id="alpha-panel" hidden>
+    <label for="alpha">背景透明度 <output id="percent" for="alpha"></output></label>
+    <input id="alpha" type="range" min="0" max="100" step="1">
+    <button id="reset-alpha" type="button">恢复默认</button>
+  </aside>
+  <div id="status" role="status" hidden></div>
+  <textarea id="editor" aria-label="Markdown 便签正文" placeholder="写便签…" spellcheck="false" hidden></textarea>
+  <main id="preview" hidden></main>
+  <section id="image-surface" hidden>
+    <img id="image" alt="固定的截图" draggable="false">
+    <div id="image-actions">
+      <button id="smaller" type="button" title="缩小" aria-label="缩小">−</button>
+      <button id="larger" type="button" title="放大" aria-label="放大">+</button>
+      <button id="copy" type="button">复制</button>
+      <button id="save" type="button">另存 PNG</button>
+      <button id="close-image" type="button" title="关闭 (Esc)" aria-label="关闭截图">×</button>
+    </div>
+  </section>
+</body>
+</html>
